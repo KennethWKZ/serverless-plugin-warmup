@@ -37,7 +37,15 @@ async function lambdaRequest(provider, method, params) {
 		lambdaClientPromises.set(provider, clientPromise);
 	}
 	const client = await clientPromise;
-	const { [`${method}Command`]: Command } = require('@aws-sdk/client-lambda');
+	// AWS SDK v3 Command classes are PascalCase (InvokeCommand), while the v2
+	// provider.request() action names are camelCase (invoke).
+	const commandName = `${method.charAt(0).toUpperCase() + method.slice(1)}Command`;
+	const Command = require('@aws-sdk/client-lambda')[commandName];
+	if (typeof Command !== 'function') {
+		throw new Error(
+			`Unsupported Lambda action: ${method} (@aws-sdk/client-lambda does not export ${commandName})`,
+		);
+	}
 	return client.send(new Command(params));
 }
 
