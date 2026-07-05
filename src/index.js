@@ -217,6 +217,12 @@ class WarmUp {
 				if (!warmerConfig) {
 					throw new this.serverless.classes.Error(`Warmer names ${warmerName} doesn't exist.`);
 				}
+				if (warmerConfig.functions.length === 0) {
+					this.log.warning(
+						`WarmUp: Skipping prewarming using warmer "${warmerName}". No functions to warm up.`,
+					);
+					return;
+				}
 				addWarmUpFunctionToService(this.serverless.service, warmerName, warmerConfig);
 				await this.invokeWarmer(warmerName, warmerConfig);
 			}),
