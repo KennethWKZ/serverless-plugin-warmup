@@ -17,6 +17,9 @@
 		"type": "git",
 		"url": "git+https://github.com/juanjoDiaz/serverless-plugin-warmup.git"
 	},
+	"dependencies": {
+		"@aws-sdk/client-lambda": "^3.1079.0"
+	},
 	"keywords": [
 		"serverless plugin warm up lambdas",
 		"serverless warmup",
