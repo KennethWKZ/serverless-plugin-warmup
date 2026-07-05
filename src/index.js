@@ -17,6 +17,37 @@ const {
 	addWarmUpFunctionToService,
 } = require('./warmer');
 const { capitalize } = require('./utils');
+const { LambdaClient } = require('@aws-sdk/client-lambda');
+
+/**
+ * Invoke a Lambda AWS API method in a framework-aware way.
+ * osls v4 removed provider.request() (throws AWS_SDK_V2_SURFACE_REMOVED);
+ * there a LambdaClient is built from provider.getAwsSdkV3Config(). On
+ * serverless v3 the original provider.request() surface is kept as-is.
+ * LambdaClients are cached per provider via a WeakMap.
+ */
+const lambdaClientPromises = new WeakMap();
+async function lambdaRequest(provider, method, params) {
+	if (typeof provider.getAwsSdkV3Config !== 'function') {
+		return provider.request('Lambda', method, params);
+	}
+	let clientPromise = lambdaClientPromises.get(provider);
+	if (!clientPromise) {
+		clientPromise = provider.getAwsSdkV3Config().then((cfg) => new LambdaClient(cfg));
+		lambdaClientPromises.set(provider, clientPromise);
+	}
+	const client = await clientPromise;
+	// AWS SDK v3 Command classes are PascalCase (InvokeCommand), while the v2
+	// provider.request() action names are camelCase (invoke).
+	const commandName = `${method.charAt(0).toUpperCase() + method.slice(1)}Command`;
+	const Command = require('@aws-sdk/client-lambda')[commandName];
+	if (typeof Command !== 'function') {
+		throw new Error(
+			`Unsupported Lambda action: ${method} (@aws-sdk/client-lambda does not export ${commandName})`,
+		);
+	}
+	return client.send(new Command(params));
+}
 
 /**
  * @classdesc Keep your lambdas warm during winter
@@ -256,7 +287,7 @@ class WarmUp {
 				Payload: warmerConfig.payload,
 			};
 
-			await this.provider.request('Lambda', 'invoke', params);
+			await lambdaRequest(this.provider, 'invoke', params);
 			this.log.notice(`WarmUp: Warmer "${warmerName}" successfully prewarmed your functions.`);
 		} catch (err) {
 			this.log.error(
