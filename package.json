@@ -1,8 +1,11 @@
 {
-	"name": "serverless-plugin-warmup",
+	"name": "@kennethwkz/serverless-plugin-warmup",
 	"version": "8.4.1",
 	"description": "Keep your lambdas warm during winter.",
 	"main": "src/index.js",
+	"publishConfig": {
+		"access": "public"
+	},
 	"scripts": {
 		"prepare": "husky",
 		"lint": "biome check .",
@@ -15,7 +18,7 @@
 	"license": "MIT",
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/juanjoDiaz/serverless-plugin-warmup.git"
+		"url": "git+https://github.com/KennethWKZ/serverless-plugin-warmup.git"
 	},
 	"dependencies": {
 		"@aws-sdk/client-lambda": "^3.1079.0"
