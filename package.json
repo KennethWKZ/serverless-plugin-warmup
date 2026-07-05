@@ -1,6 +1,6 @@
 {
 	"name": "@kennethwkz/serverless-plugin-warmup",
-	"version": "8.5.0",
+	"version": "8.5.1",
 	"description": "Keep your lambdas warm during winter.",
 	"main": "src/index.js",
 	"publishConfig": {
